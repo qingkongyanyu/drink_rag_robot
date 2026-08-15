@@ -88,8 +88,22 @@ app.include_router(system_router)
 # ---------------- 前端静态托管 ----------------
 _DIST = Path(FRONTEND_DIST_DIR)
 
+
+class NoCacheStaticFiles(StaticFiles):
+    """静态文件：统一加 no-cache 响应头，保证前端更新即时生效。"""
+
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+        return response
+
+
 if _DIST.exists() and (_DIST / "index.html").exists():
-    app.mount("/assets", StaticFiles(directory=_DIST / "assets"), name="static-assets")
+    app.mount(
+        "/assets",
+        NoCacheStaticFiles(directory=_DIST / "assets"),
+        name="static-assets",
+    )
 
     @app.get("/")
     async def serve_index():

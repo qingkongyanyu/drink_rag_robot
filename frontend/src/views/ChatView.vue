@@ -22,6 +22,7 @@
         <span class="chip model-chip" title="当前大模型">
           <i class="fa-solid fa-microchip"></i>{{ system.status?.llm_model || 'qwen' }}
         </span>
+        <span class="chip version-chip" title="前端版本">v3.3.0</span>
         <button class="btn btn-primary btn-sm" @click="chat.newSession">
           <i class="fa-solid fa-plus"></i><span>新对话</span>
         </button>
