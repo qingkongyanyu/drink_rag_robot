@@ -29,16 +29,25 @@
         </nav>
 
         <div class="sidebar-foot">
-          <div class="conn" :class="{ online: system.online }">
-            <i class="fa-solid fa-circle"></i>
-            <span v-show="!collapsed">{{ system.online ? '服务在线' : '服务离线' }}</span>
+          <div class="user-box" :title="isDark ? '切换浅色' : '切换深色'">
+            <div class="user-avatar">
+              <img src="@/assets/user-avatar.png" alt="我" class="avatar-img" />
+            </div>
+            <div class="user-meta" v-show="!collapsed">
+              <span class="user-name">我</span>
+              <span class="conn" :class="{ online: system.online }">
+                <i class="fa-solid fa-circle"></i>{{ system.online ? '在线' : '离线' }}
+              </span>
+            </div>
           </div>
-          <button class="icon-btn" @click="toggleTheme" :title="isDark ? '切换浅色' : '切换深色'">
-            <i :class="isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
-          </button>
-          <button class="icon-btn" @click="collapsed = !collapsed" title="收起/展开侧栏">
-            <i :class="collapsed ? 'fa-solid fa-angles-right' : 'fa-solid fa-angles-left'"></i>
-          </button>
+          <div class="foot-btns">
+            <button class="icon-btn" @click="toggleTheme" :title="isDark ? '切换浅色' : '切换深色'">
+              <i :class="isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
+            </button>
+            <button class="icon-btn" @click="collapsed = !collapsed" title="收起/展开侧栏">
+              <i :class="collapsed ? 'fa-solid fa-angles-right' : 'fa-solid fa-angles-left'"></i>
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -153,17 +162,38 @@ onMounted(() => {
   padding-top: 14px;
   border-top: 1px solid var(--border);
 }
-.conn { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-dim); }
-.conn i { font-size: 9px; color: var(--danger); }
-.conn.online i { color: var(--accent-2); }
-.icon-btn {
+.user-box {
+  display: flex; align-items: center; gap: 10px;
+  min-width: 0;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 12px;
+  transition: background .2s;
+}
+.user-box:hover { background: var(--glass-strong); }
+.user-avatar {
   width: 34px; height: 34px; flex-shrink: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  padding: 2px;
+  background: linear-gradient(135deg, #34d399, #0d9488);
+  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+}
+.user-avatar .avatar-img { border-radius: 8px; }
+.user-meta { display: flex; flex-direction: column; min-width: 0; }
+.user-name { font-size: 13px; font-weight: 600; }
+.conn { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--text-dim); }
+.conn i { font-size: 7px; color: var(--danger); }
+.conn.online i { color: var(--accent-2); }
+.foot-btns { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.icon-btn {
+  width: 32px; height: 32px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   border-radius: 10px;
   background: var(--glass-strong);
   border: 1px solid var(--border);
   color: var(--text-sub);
-  font-size: 14px;
+  font-size: 13px;
   transition: all 0.2s;
 }
 .icon-btn:hover { background: var(--glass-hover); color: var(--text-main); }

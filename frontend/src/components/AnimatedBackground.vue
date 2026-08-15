@@ -29,8 +29,8 @@ class P {
     this.sx = (Math.random() - 0.5) * 0.5
     this.sy = (Math.random() - 0.5) * 0.5
     this.o = Math.random() * 0.4 + 0.15
-    // 颜色在 青 / 绿 / 紫 之间随机
-    const palette = ['56,189,248', '52,211,153', '139,92,246']
+    // 颜色在 青 / 薄荷绿 / 深绿 之间随机
+    const palette = ['45,212,191', '52,211,153', '16,185,129']
     this.color = palette[Math.floor(Math.random() * palette.length)]
     if (!init) {
       this.r = Math.random() * 1.8 + 0.6
@@ -71,7 +71,7 @@ function draw() {
         ctx.beginPath()
         ctx.moveTo(a.x, a.y)
         ctx.lineTo(b.x, b.y)
-        ctx.strokeStyle = `rgba(56, 189, 248, ${0.2 * (1 - d / link)})`
+        ctx.strokeStyle = `rgba(45, 212, 191, ${0.2 * (1 - d / link)})`
         ctx.lineWidth = 0.5
         ctx.stroke()
       }
@@ -100,9 +100,9 @@ onUnmounted(() => {
 <style scoped>
 .abg { position: fixed; inset: 0; z-index: 0; overflow: hidden;
   background:
-    radial-gradient(1200px 700px at 15% -10%, rgba(14,165,233,.18), transparent 60%),
+    radial-gradient(1200px 700px at 15% -10%, rgba(5,150,105,.18), transparent 60%),
     radial-gradient(1100px 600px at 90% 110%, rgba(52,211,153,.14), transparent 60%),
-    radial-gradient(900px 600px at 70% 20%, rgba(139,92,246,.10), transparent 60%),
+    radial-gradient(900px 600px at 70% 20%, rgba(13,148,136,.10), transparent 60%),
     linear-gradient(135deg, var(--bg-0), var(--bg-1) 55%, var(--bg-2));
   transition: background 0.5s ease;
 }
@@ -110,16 +110,16 @@ onUnmounted(() => {
 .abg-grid {
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(rgba(56,189,248,.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(56,189,248,.05) 1px, transparent 1px);
+    linear-gradient(rgba(45,212,191,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45,212,191,.05) 1px, transparent 1px);
   background-size: 56px 56px;
   mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 75%);
   -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 75%);
 }
 .abg-blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .5; animation: blob-move 22s ease-in-out infinite; }
-.abg-blob-1 { width: 480px; height: 480px; left: -120px; top: -80px; background: rgba(14,165,233,.32); }
+.abg-blob-1 { width: 480px; height: 480px; left: -120px; top: -80px; background: rgba(5,150,105,.32); }
 .abg-blob-2 { width: 420px; height: 420px; right: -100px; bottom: -60px; background: rgba(52,211,153,.24); animation-delay: -7s; }
-.abg-blob-3 { width: 360px; height: 360px; left: 40%; top: 55%; background: rgba(139,92,246,.18); animation-delay: -14s; }
+.abg-blob-3 { width: 360px; height: 360px; left: 40%; top: 55%; background: rgba(13,148,136,.18); animation-delay: -14s; }
 
 /* 极光光带：柔和流动，提升高级感 */
 .abg-aurora {
@@ -133,11 +133,11 @@ onUnmounted(() => {
 }
 .abg-aurora-1 {
   left: -20%; right: -20%; top: 8%;
-  background: linear-gradient(90deg, transparent, rgba(14,165,233,.5) 30%, rgba(99,102,241,.45) 60%, transparent);
+  background: linear-gradient(90deg, transparent, rgba(5,150,105,.5) 30%, rgba(45,212,191,.45) 60%, transparent);
 }
 .abg-aurora-2 {
   left: -15%; right: -15%; bottom: 4%;
-  background: linear-gradient(90deg, transparent, rgba(52,211,153,.4) 35%, rgba(139,92,246,.35) 70%, transparent);
+  background: linear-gradient(90deg, transparent, rgba(52,211,153,.4) 35%, rgba(13,148,136,.35) 70%, transparent);
   animation-delay: -8s;
   animation-duration: 20s;
 }
