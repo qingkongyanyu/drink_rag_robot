@@ -1,0 +1,4 @@
+# ===== Drink RAG Robot 根依赖 =====
+# 实际依赖见 backend/requirements.txt（后端运行）
+# 前端依赖见 frontend/package.json（npm install）
+-r backend/requirements.txt

@@ -1,0 +1,27 @@
+# ===== Drink RAG Robot 后端依赖 =====
+# 建议使用 Python 3.10+，安装：pip install -r backend/requirements.txt
+# 注意：sentence-transformers 会自动安装 torch，如需 GPU 请自行安装对应 CUDA 版 torch
+
+# --- Web 框架 ---
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
+pydantic>=2.7.0
+
+# --- HTTP / 大模型 ---
+requests>=2.31.0
+
+# --- 文本处理 ---
+jieba>=0.42.1
+numpy>=1.26.0
+
+# --- 向量检索 ---
+sentence-transformers>=3.0.0
+faiss-cpu>=1.8.0
+
+# --- 文档解析 ---
+pypdf>=4.2.0
+python-docx>=1.1.0
+
+# --- 可选：更精确的 token 统计 ---
+# tiktoken>=0.6.0

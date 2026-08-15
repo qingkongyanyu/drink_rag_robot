@@ -1,0 +1,36 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# ===== Node =====
+node_modules/
+frontend/dist/
+*.local
+
+# ===== 运行时数据 =====
+data/uploads/
+data/vector_store/
+data/drink_rag.db*
+logs/
+*.log
+
+# ===== 模型缓存 =====
+~/.cache/huggingface/
+models--*/
+
+# ===== 编辑器/系统 =====
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ===== 测试产物 =====
+.pytest_cache/
+coverage.xml
+htmlcov/
