@@ -60,7 +60,7 @@ class Settings(BaseModel):
     APP_NAME: str = "Drink RAG Robot 饮料健康知识问答"
     APP_VERSION: str = "3.3.2"
     HOST: str = Field(default="0.0.0.0")
-    PORT: int = Field(default=8002)
+    PORT: int = Field(default=8006)
     DEBUG: bool = Field(default=False)
     # CORS 允许来源，逗号分隔
     CORS_ORIGINS: str = "*"

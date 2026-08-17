@@ -17,10 +17,10 @@ cd frontend && npm install && cd ..
 **后端**（热重载）：
 
 ```bash
-uvicorn backend.main:app --reload --port 8002
+uvicorn backend.main:app --reload --port 8006
 ```
 
-**前端**（Vite 开发服务器，`/api` 已代理到 8002）：
+**前端**（Vite 开发服务器，`/api` 已代理到 8006）：
 
 ```bash
 cd frontend && npm run dev    # http://localhost:5173
