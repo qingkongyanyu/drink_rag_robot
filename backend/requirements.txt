@@ -8,8 +8,8 @@ uvicorn[standard]>=0.30.0
 python-multipart>=0.0.9
 pydantic>=2.7.0
 
-# --- HTTP / 大模型 ---
-requests>=2.31.0
+# --- 大模型（openai 官方 SDK 调 OpenAI 兼容接口） ---
+openai>=1.30.0
 
 # --- 文本处理 ---
 jieba>=0.42.1

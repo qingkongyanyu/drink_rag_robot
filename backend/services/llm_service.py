@@ -1,18 +1,29 @@
-"""大模型服务：千问 DashScope 调用（非流式 + SSE 流式 + 查询改写）。
+"""大模型服务：千问 DashScope 调用（openai 官方 SDK，非流式 + 流式 + 查询改写）。
 
 设计要点：
-1. 支持流式输出（SSE），前端打字机效果；
-2. 请求超时 + 自动重试 + 明确异常分类；
-3. 使用 OpenAI 兼容协议（/compatible-mode/v1），便于将来切换任意兼容模型；
+1. 基于 openai 官方 SDK 调用 OpenAI 兼容协议（/compatible-mode/v1）：
+   流式输出、超时、自动重试、连接管理全部由 SDK 内置，不再手写 HTTP/SSE 解析；
+2. 只需配置 base_url 一个参数，即可切换任意 OpenAI 兼容服务商（百炼/OpenAI/Ollama/方舟等）；
+3. SDK 异常按类型映射为可读的业务异常（与 HTTP 状态码一一对应）；
 4. 查询改写：多轮对话下的指代消解与意图补全。
 """
 from __future__ import annotations
 
-import json
-import time
+import os
 from typing import Dict, Iterator, List, Optional
 
-import requests
+from openai import (
+    APIConnectionError,
+    APITimeoutError,
+    APIStatusError,
+    AuthenticationError,
+    BadRequestError,
+    InternalServerError,
+    OpenAI,
+    OpenAIError,
+    PermissionDeniedError,
+    RateLimitError,
+)
 
 from backend.core.config import settings
 from backend.core.logging import logger
@@ -49,6 +60,9 @@ class LLMEmptyError(LLMError):
     default_msg = "大模型返回内容为空"
 
 
+_client: Optional[OpenAI] = None
+
+
 def _check_key() -> str:
     key = (settings.LLM_API_KEY or "").strip()
     if not key or key in ("your-api-key-here", "sk-your-api-key"):
@@ -56,124 +70,105 @@ def _check_key() -> str:
     return key
 
 
-def _headers() -> Dict[str, str]:
-    return {
-        "Authorization": f"Bearer {_check_key()}",
-        "Content-Type": "application/json",
-    }
+def _resolve_base_url() -> str:
+    """解析 OpenAI 兼容 base_url（SDK 需要基础地址，不含 /chat/completions 后缀）。
+
+    优先取显式配置的 LLM_BASE_URL；否则用 LLM_API_URL 并去掉端点后缀（兼容旧 .env）。
+    """
+    if os.environ.get("LLM_BASE_URL"):
+        return os.environ["LLM_BASE_URL"].strip().rstrip("/")
+    api_url = (settings.LLM_API_URL or "").strip().rstrip("/")
+    if api_url.endswith("/chat/completions"):
+        api_url = api_url[: -len("/chat/completions")]
+    return api_url or (settings.LLM_BASE_URL or "").strip().rstrip("/")
 
 
-def _build_payload(messages: List[Dict[str, str]], stream: bool = False) -> Dict:
-    return {
-        "model": settings.LLM_MODEL,
-        "messages": messages,
-        "stream": stream,
-        "temperature": settings.LLM_TEMPERATURE,
-        "top_p": settings.LLM_TOP_P,
-        "max_tokens": settings.LLM_MAX_TOKENS,
-    }
+def get_client() -> OpenAI:
+    """懒加载单例 OpenAI 客户端（进程内只初始化一次）。"""
+    global _client
+    if _client is None:
+        _check_key()
+        try:
+            _client = OpenAI(
+                api_key=settings.LLM_API_KEY,
+                base_url=_resolve_base_url(),
+                timeout=settings.LLM_TIMEOUT,
+                max_retries=settings.LLM_MAX_RETRIES,
+            )
+        except Exception as e:  # noqa: BLE001
+            raise LLMConnectError(f"LLM 客户端初始化失败: {e}") from e
+    return _client
 
 
-def _handle_response_error(resp: requests.Response) -> None:
-    if resp.status_code == 401:
-        raise LLMKeyError()
-    if resp.status_code == 429:
-        raise LLMError("请求过于频繁，已被限流，请稍后再试")
-    # 4xx：请求参数/模型问题，重试无意义，透出服务端原始信息便于排查
-    if 400 <= resp.status_code < 500:
-        detail = resp.text[:300]
-        raise LLMError(f"大模型 API 请求被拒绝 (HTTP {resp.status_code})：{detail}")
-    raise LLMConnectError(f"大模型 API 请求失败 (HTTP {resp.status_code})")
+def _map_sdk_error(e: Exception) -> LLMError:
+    """将 openai SDK 异常映射为业务异常（与 HTTP 状态码一一对应）。"""
+    if isinstance(e, AuthenticationError):
+        return LLMKeyError(f"LLM API Key 无效或未配置：{e}")
+    if isinstance(e, PermissionDeniedError):
+        return LLMKeyError(f"大模型 API 无访问权限：{e}")
+    if isinstance(e, RateLimitError):
+        return LLMError("请求过于频繁，已被限流，请稍后再试")
+    if isinstance(e, APITimeoutError):
+        return LLMTimeoutError()
+    if isinstance(e, APIConnectionError):
+        return LLMConnectError()
+    if isinstance(e, BadRequestError):
+        return LLMError(f"大模型 API 请求被拒绝 (HTTP {e.status_code})：{str(e)[:300]}")
+    if isinstance(e, InternalServerError):
+        return LLMConnectError(f"大模型服务端错误 (HTTP {e.status_code})")
+    if isinstance(e, APIStatusError):
+        return LLMError(f"大模型 API 请求失败 (HTTP {e.status_code})：{str(e)[:300]}")
+    if isinstance(e, OpenAIError):
+        return LLMError(str(e))
+    return LLMError(str(e))
 
 
 # ==================== 非流式 ====================
 
+
 def chat_completion(messages: List[Dict[str, str]]) -> str:
     """一次性生成完整回答。返回文本；失败抛 LLMError。"""
-    payload = _build_payload(messages, stream=False)
-    last_err: Optional[LLMError] = None
-    for attempt in range(settings.LLM_MAX_RETRIES + 1):
-        try:
-            resp = requests.post(
-                settings.LLM_API_URL,
-                headers=_headers(),
-                json=payload,
-                timeout=settings.LLM_TIMEOUT,
-            )
-            if resp.status_code != 200:
-                _handle_response_error(resp)
-                continue
-            data = resp.json()
-            text = _extract_text(data)
-            if not text:
-                raise LLMEmptyError()
-            return text
-        except requests.exceptions.Timeout:
-            last_err = LLMTimeoutError()
-        except requests.exceptions.ConnectionError:
-            last_err = LLMConnectError()
-        except LLMError:
-            raise
-        except Exception as e:  # noqa: BLE001
-            last_err = LLMError(str(e))
-        if attempt < settings.LLM_MAX_RETRIES:
-            time.sleep(0.5 * (attempt + 1))
-    raise last_err or LLMError()
+    try:
+        resp = get_client().chat.completions.create(
+            model=settings.LLM_MODEL,
+            messages=messages,
+            temperature=settings.LLM_TEMPERATURE,
+            top_p=settings.LLM_TOP_P,
+            max_tokens=settings.LLM_MAX_TOKENS,
+            stream=False,
+        )
+        text = (resp.choices[0].message.content or "").strip()
+        if not text:
+            raise LLMEmptyError()
+        return text
+    except LLMError:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _map_sdk_error(e) from e
 
 
-def _extract_text(data: dict) -> str:
-    """兼容 OpenAI 协议 / DashScope 原生协议两种返回结构（含流式 delta）。"""
-    choices = data.get("choices")
-    if choices:
-        msg = choices[0].get("message") or choices[0].get("delta") or {}
-        content = msg.get("content")
-        if content:
-            return content
-    output = data.get("output", {})
-    if isinstance(output, dict):
-        if output.get("text"):
-            return output["text"]
-        out_choices = output.get("choices")
-        if out_choices:
-            msg = out_choices[0].get("message") or out_choices[0].get("delta") or {}
-            if msg.get("content"):
-                return msg["content"]
-    return ""
+# ==================== 流式 ====================
 
-
-# ==================== 流式（SSE） ====================
 
 def stream_chat(messages: List[Dict[str, str]]) -> Iterator[str]:
-    """流式生成，yield 每个文本增量（不含 SSE 包装）。"""
-    payload = _build_payload(messages, stream=True)
-    resp = requests.post(
-        settings.LLM_API_URL,
-        headers=_headers(),
-        json=payload,
-        timeout=settings.LLM_TIMEOUT * 2,
-        stream=True,
-    )
-    if resp.status_code != 200:
-        _handle_response_error(resp)
+    """流式生成，yield 每个文本增量；出错抛 LLMError。"""
     try:
-        for raw_line in resp.iter_lines(decode_unicode=True):
-            if not raw_line:
+        stream = get_client().chat.completions.create(
+            model=settings.LLM_MODEL,
+            messages=messages,
+            temperature=settings.LLM_TEMPERATURE,
+            top_p=settings.LLM_TOP_P,
+            max_tokens=settings.LLM_MAX_TOKENS,
+            stream=True,
+        )
+        for chunk in stream:
+            if not chunk.choices:
                 continue
-            line = raw_line.strip()
-            if not line.startswith("data:"):
-                continue
-            data_str = line[len("data:") :].strip()
-            if data_str == "[DONE]":
-                break
-            try:
-                data = json.loads(data_str)
-            except json.JSONDecodeError:
-                continue
-            text = _extract_text(data)
-            if text:
-                yield text
-    finally:
-        resp.close()
+            delta = chunk.choices[0].delta
+            if delta and delta.content:
+                yield delta.content
+    except Exception as e:  # noqa: BLE001
+        raise _map_sdk_error(e) from e
 
 
 # ==================== 查询改写 ====================

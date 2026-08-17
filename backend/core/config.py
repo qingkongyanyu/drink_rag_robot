@@ -58,7 +58,7 @@ os.environ.setdefault("TRANSFORMERS_OFFLINE", "0")
 class Settings(BaseModel):
     # ---------------- 应用基础 ----------------
     APP_NAME: str = "Drink RAG Robot 饮料健康知识问答"
-    APP_VERSION: str = "3.0.0"
+    APP_VERSION: str = "3.3.1"
     HOST: str = Field(default="0.0.0.0")
     PORT: int = Field(default=8000)
     DEBUG: bool = Field(default=False)
@@ -68,14 +68,16 @@ class Settings(BaseModel):
     # ---------------- 大模型（千问 DashScope） ----------------
     LLM_API_KEY: Optional[str] = Field(default=None)
     LLM_MODEL: str = "qwen-plus"
-    # OpenAI 兼容地址：/compatible-mode/v1/chat/completions（千问官方兼容协议，便于切换任意兼容模型）
-    LLM_API_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+    # LLM_BASE_URL：OpenAI 兼容基础地址（SDK 传入 base_url，优先采用；不含 /chat/completions）
     LLM_BASE_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    # LLM_API_URL：兼容旧 .env 的完整端点；llm_service 会自动去掉 /chat/completions 后缀
+    LLM_API_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
     LLM_TIMEOUT: int = 30          # 单次请求超时（秒）
     LLM_MAX_RETRIES: int = 2       # 失败重试次数
     LLM_TEMPERATURE: float = 0.3
     LLM_TOP_P: float = 0.8
     LLM_MAX_TOKENS: int = 1200
+    LLM_MAX_OUTPUT_CHARS: int = 2000      # 回复文本最大字符数（流式/非流式均在输出层截断，可在 .env 覆盖）
     LLM_SYSTEM_PROMPT: str = (
         "你是一位专业、严谨的饮料健康顾问。请严格基于提供的【参考知识库】回答，"
         "禁止编造知识库中不存在的饮料信息。当知识库信息不足以回答时，明确说明'知识库中暂无相关记录'。"

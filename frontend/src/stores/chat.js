@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { reactive } from 'vue'
 import { streamChat, sendChat, fetchHistory, clearHistory } from '@/api/chat'
 import { formatClock } from '@/utils/format'
 
@@ -110,10 +111,10 @@ export const useChatStore = defineStore('chat', {
       const question = text.trim()
       if (!question) return
 
-      const userMsg = { id: nid(), role: 'user', content: question, time: formatClock(Date.now()) }
+      const userMsg = reactive({ id: nid(), role: 'user', content: question, time: formatClock(Date.now()) })
       this.messages.push(userMsg)
 
-      const botMsg = { id: nid(), role: 'assistant', content: '', time: formatClock(Date.now()), sources: [], streaming: true }
+      const botMsg = reactive({ id: nid(), role: 'assistant', content: '', time: formatClock(Date.now()), sources: [], streaming: true })
       this.pending = botMsg
       this.messages.push(botMsg)
       this.streaming = true

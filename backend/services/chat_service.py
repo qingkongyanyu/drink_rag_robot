@@ -62,6 +62,14 @@ def _estimate_tokens(text: str) -> int:
     return max(1, int(len(text) * 0.7))
 
 
+def _limit_answer(text: str) -> str:
+    """限制回复文本最大长度，避免超长输出（超限直接截断）。"""
+    max_chars = settings.LLM_MAX_OUTPUT_CHARS
+    if max_chars <= 0 or len(text) <= max_chars:
+        return text
+    return text[:max_chars]
+
+
 def _retrieve(engine: RAGEngine, query: str) -> List[Dict]:
     try:
         return engine.retrieve(query, top_k=settings.RAG_TOP_K)
@@ -94,7 +102,7 @@ def generate_reply(
 
     # 3. 组装 Prompt
     messages = _build_messages(question, history_text, knowledge, show_citations)
-    bot_answer = llm_service.chat_completion(messages)
+    bot_answer = _limit_answer(llm_service.chat_completion(messages))
 
     latency = int((time.time() - start) * 1000)
     tokens = _estimate_tokens(question) + _estimate_tokens(bot_answer)
@@ -146,8 +154,14 @@ def stream_reply(
     messages = _build_messages(question, history_text, knowledge, show_citations)
     answer_parts: List[str] = []
     try:
+        remaining = settings.LLM_MAX_OUTPUT_CHARS
         for delta in llm_service.stream_chat(messages):
+            if remaining <= 0:
+                break
+            if len(delta) > remaining:
+                delta = delta[:remaining]
             answer_parts.append(delta)
+            remaining -= len(delta)
             yield {"type": "delta", "content": delta}
     except Exception as e:  # noqa: BLE001
         logger.exception("流式生成异常：%s", e)

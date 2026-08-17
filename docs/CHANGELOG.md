@@ -6,6 +6,18 @@
 
 ---
 
+## [3.3.1] - 2026-08-17 · 重构：LLM 调用升级为 openai 官方 SDK
+
+### 🔧 LLM 层重构
+- `llm_service.py` 从手写 `requests` + SSE 解析，改为 **openai 官方 SDK**（`OpenAI` 客户端）调用 DashScope OpenAI 兼容协议；
+- 流式输出 / 超时 / 自动重试 / 异常分类由 SDK 内置，删除手写 HTTP 头、SSE `iter_lines` 解析与退避重试代码；
+- 保留业务价值封装：错误 → HTTP 状态码映射（401/408/429/502/503）与多轮**查询改写**；
+- `base_url` 自动兼容旧配置：优先 `LLM_BASE_URL`，`LLM_API_URL`（含 `/chat/completions` 后缀）自动去除；
+- 依赖调整：`backend/requirements.txt` 新增 `openai>=1.30.0`，移除已无引用的 `requests`；
+- 文档同步：README / 架构设计 / 项目结构书 / 面试要点。
+
+---
+
 ## [3.3.0] - 2026-08-15 · 大改版：会话管理 + 青柠薄荷主题
 
 ### 🏗 布局大改（类现代 AI 聊天产品，风格独立）

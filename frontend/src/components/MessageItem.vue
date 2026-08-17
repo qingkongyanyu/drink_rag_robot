@@ -83,6 +83,9 @@ import { renderMarkdown } from '@/utils/markdown'
 const props = defineProps({ msg: { type: Object, required: true } })
 const showSources = ref(false)
 
+// 角色（user / assistant）之前模板里用了却没定义，导致所有消息都走 v-else 显示用户头像
+const role = computed(() => props.msg.role || 'user')
+
 const html = computed(() => renderMarkdown(props.msg.content || ''))
 
 function methodLabel(m) {

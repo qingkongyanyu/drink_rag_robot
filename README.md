@@ -7,7 +7,7 @@
 FastAPI · Vue 3 · 混合检索 · 语义重排 · 流式输出 · 知识库管理
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.141+-009688)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688)
 ![Vue](https://img.shields.io/badge/Vue-3.5-4FC08D)
 ![RAG](https://img.shields.io/badge/RAG-Hybrid%20Retrieval-orange)
 ![License](https://img.shields.io/badge/License-MIT-green)
@@ -117,6 +117,7 @@ python scripts/test_api.py
 
 | 文档 | 说明 |
 |------|------|
+| [docs/技术栈.md](docs/技术栈.md) | 技术栈详解：每项技术的版本、职责、选型理由与备选对比 |
 | [docs/架构设计.md](docs/架构设计.md) | 系统架构、模块划分、数据流、设计取舍 |
 | [docs/RAG技术方案.md](docs/RAG技术方案.md) | 检索链路详解：嵌入/BM25/RRF/重排/改写 |
 | [docs/项目结构书.md](docs/项目结构书.md) | 完整目录结构与职责说明 |
@@ -125,23 +126,21 @@ python scripts/test_api.py
 | [docs/测试报告.md](docs/测试报告.md) | 单元测试与接口测试结果 |
 | [docs/面试要点.md](docs/面试要点.md) | 项目技术亮点与 Q&A |
 | [docs/用户使用手册.md](docs/用户使用手册.md) | 面向使用者的操作手册 |
-| [docs/CHANGELOG.md](docs/CHANGELOG.md) | 版本迭代记录（v3.1 含前端重构与流式修复） |
+| [docs/CHANGELOG.md](docs/CHANGELOG.md) | 版本迭代记录 |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | 贡献指南（开发 / 规范 / PR 流程） |
+| [SECURITY.md](SECURITY.md) | 安全策略与漏洞报告 |
 
 ## 🏗 技术栈
 
-**后端**
-- FastAPI + Uvicorn（异步 Web 框架）
-- sentence-transformers（`bge-small-zh` 中文语义嵌入）
-- FAISS（向量索引，IndexFlatIP）
-- 自研 BM25 稀疏检索（jieba 分词 + numpy 向量化打分）
-- 千问大模型（DashScope OpenAI 兼容协议，SSE 流式）
-- SQLite（WAL 模式，对话 / 文档 / 统计持久化）
+| 层 | 技术 |
+|----|------|
+| 后端 | FastAPI · Uvicorn · pydantic v2 · **openai SDK**（千问兼容协议） |
+| 嵌入/检索 | sentence-transformers（bge-small-zh）· FAISS · 自研 BM25（jieba+numpy） |
+| 持久化 | SQLite（WAL） |
+| 前端 | Vue 3 · Vite · Pinia · Vue Router · ECharts · Markdown-it |
+| 文档解析 | pypdf · python-docx |
 
-**前端**
-- Vue 3 + Vite + Vue Router + Pinia
-- ECharts（数据可视化）
-- Markdown-it（回答渲染）
-- 深空玻璃拟态设计系统：极光光带背景、渐变动效、自定义头像、深/浅双主题
+> 每项技术的**版本、职责、选型理由与备选对比**详见 [docs/技术栈.md](docs/技术栈.md)。
 
 ## 📁 目录结构（概览）
 
@@ -191,7 +190,8 @@ v3.1 已修复：此前后端 SSE 将事件类型放在 `event:` 行而前端只
 <summary><b>Q：如何更换大模型？</b></summary>
 
 `.env` 中 `LLM_MODEL` 支持 `qwen-turbo / qwen-plus / qwen-max`；
-`LLM_API_URL` 使用 OpenAI 兼容协议，可整体替换为任意兼容服务商。
+`LLM_BASE_URL` 使用 OpenAI 兼容基础地址（openai SDK 的 `base_url`），可整体替换为任意兼容服务商。
+（旧版完整端点 `LLM_API_URL` 仍兼容，代码会自动去掉 `/chat/completions` 后缀。）
 </details>
 
 ## 📄 License
