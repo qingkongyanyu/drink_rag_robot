@@ -75,7 +75,7 @@ def ensure_frontend(skip_build: bool):
 
 
 def main():
-    port = 8000
+    port = 8002
     skip_build = False
     args = sys.argv[1:]
     for i, a in enumerate(args):

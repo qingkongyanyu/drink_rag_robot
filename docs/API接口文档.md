@@ -1,7 +1,7 @@
 # 🔌 API 接口文档
 
 > 版本：v3.3.1 · 更新日期：2026-08-17
-> 交互式文档（Swagger）：启动服务后访问 `http://127.0.0.1:8000/api/docs`
+> 交互式文档（Swagger）：启动服务后访问 `http://127.0.0.1:8002/api/docs`
 
 **统一响应格式**：
 
@@ -152,7 +152,7 @@
 
 ```json
 { "code": 200, "data": {
-    "status":"ok", "app_name":"Drink RAG Robot 饮料健康知识问答", "app_version":"3.3.1",
+    "status":"ok", "app_name":"Drink RAG Robot 饮料健康知识问答", "app_version":"3.3.2",
     "uptime_seconds":3600, "api_key_configured":true, "llm_model":"qwen-plus",
     "engine_ready":true, "embedding_model":"BAAI/bge-small-zh", "vector_size":100,
     "doc_count":1, "chunk_count":100, "conversation_count":5, "daily_qa":12,

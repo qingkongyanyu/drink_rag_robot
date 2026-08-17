@@ -58,9 +58,9 @@ os.environ.setdefault("TRANSFORMERS_OFFLINE", "0")
 class Settings(BaseModel):
     # ---------------- 应用基础 ----------------
     APP_NAME: str = "Drink RAG Robot 饮料健康知识问答"
-    APP_VERSION: str = "3.3.1"
+    APP_VERSION: str = "3.3.2"
     HOST: str = Field(default="0.0.0.0")
-    PORT: int = Field(default=8000)
+    PORT: int = Field(default=8002)
     DEBUG: bool = Field(default=False)
     # CORS 允许来源，逗号分隔
     CORS_ORIGINS: str = "*"

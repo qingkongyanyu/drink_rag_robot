@@ -4,7 +4,7 @@
 用法（需先启动后端）：
     cd drink_rag_robot && python scripts/test_api.py
 
-支持 BASE_URL 环境变量覆盖，例如 BASE_URL=http://localhost:8000
+支持 BASE_URL 环境变量覆盖，例如 BASE_URL=http://localhost:8002
 """
 import json
 import os
@@ -17,7 +17,7 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-BASE = os.environ.get("BASE_URL", "http://127.0.0.1:8000")
+BASE = os.environ.get("BASE_URL", "http://127.0.0.1:8002")
 
 PASS = 0
 FAIL = 0

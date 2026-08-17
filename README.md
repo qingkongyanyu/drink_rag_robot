@@ -80,16 +80,16 @@ python start.py             # 一键启动（自动检测环境、构建前端�
 cd frontend && npm run build && cd ..
 
 # 终端 B：启动后端
-uvicorn backend.main:app --host 0.0.0.0 --port 8000
+uvicorn backend.main:app --host 0.0.0.0 --port 8002
 ```
 
 ### 访问
 
 | 入口 | 地址 |
 |------|------|
-| 应用主页 | http://127.0.0.1:8000 |
-| API 文档（Swagger） | http://127.0.0.1:8000/api/docs |
-| API 文档（ReDoc） | http://127.0.0.1:8000/api/redoc |
+| 应用主页 | http://127.0.0.1:8002 |
+| API 文档（Swagger） | http://127.0.0.1:8002/api/docs |
+| API 文档（ReDoc） | http://127.0.0.1:8002/api/redoc |
 
 > 💬 聊天界面为**微信风格**：机器人回答在左侧气泡，你的消息在右侧绿色气泡，头像自动区分（机器人使用 `imag/1.jpg`，用户使用 `imag/2.webp`）。
 
@@ -97,9 +97,9 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000
 
 ```bash
 # 终端 A：后端
-uvicorn backend.main:app --reload --port 8000
+uvicorn backend.main:app --reload --port 8002
 
-# 终端 B：前端（Vite 代理 /api → 8000）
+# 终端 B：前端（Vite 代理 /api → 8002）
 cd frontend && npm run dev        # http://localhost:5173
 ```
 
@@ -169,7 +169,7 @@ drink_rag_robot/
 
 v3.1 已修复：此前后端 SSE 将事件类型放在 `event:` 行而前端只解析 `data:` 行，导致流式事件无法分发。
 现在前端同时兼容两种 SSE 形态（`event:` 行与 `data.type`），后端也做了双写。若仍异常，请确认只启动了一个后端实例
-（重复启动会抢占 8000 端口导致请求随机分发），并清理浏览器缓存后强刷（Ctrl+F5）。
+（重复启动会抢占 8002 端口导致请求随机分发），并清理浏览器缓存后强刷（Ctrl+F5）。
 </details>
 
 <details>
