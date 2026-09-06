@@ -155,6 +155,7 @@ drink_rag_robot/
 │   ├── services/       # 业务服务（LLM/对话/知识库/统计）
 │   └── tests/          # 单元测试
 ├── frontend/           # Vue3 前端
+├── imag/               # 头像图片（imag/1.jpg 机器人 · imag/2.webp 用户）
 ├── data/               # 内置知识库与运行时数据
 ├── docs/               # 全套文档
 ├── scripts/            # 运维脚本（API 测试等）
@@ -201,3 +202,5 @@ MIT License — 可自由使用、修改、商用，请保留版权声明。
 ---
 
 **Made with ❤️ · 一个把「检索增强生成」做到生产级细节的饮料问答项目**
+
+**作者：[Qingk](https://github.com/qingkongyanyu)**
